@@ -1,0 +1,16 @@
+---
+title: "Assignment1RMarkdown"
+author: "Vikram Rajendran"
+date: "2023-09-27"
+output: html_document
+---
+```{R}
+x <- c(seq(0,20, 0.01))
+y <- sin(x)
+sin_df <- data.frame(x,y)
+head(sin_df,3)
+```
+```{r}
+plot(sin_df)
+```
+$\sin^2(x)$+$cos^2(x)$ = 1
