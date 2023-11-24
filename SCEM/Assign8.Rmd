@@ -1,0 +1,144 @@
+---
+title: "Assign8"
+author: "Vikram Rajendran"
+date: "2023-11-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list = ls())
+#library(tidyverse)
+```
+```{r}
+library(tidyverse)
+library(Stat2Data)
+data("Hawks")
+```
+```{r}
+
+hawks_df <- data.frame(Hawks)
+
+```
+
+```{r}
+
+redtailed_df <- hawks_df %>%
+  filter(Species == "RT") %>%
+  select(Weight, Tail, Wing)
+
+redtailed_df %>% head(5)
+
+```
+```{r}
+
+tails <- redtailed_df %>%
+  pull(Tail)
+```
+
+```{r}
+
+#tails <- c(tails)
+```
+```{r}
+n <- length(tails)
+mu_mle <- mean(tails, na.rm = TRUE)
+sigma_mle <- sd(tails, na.rm = TRUE)*sqrt((n-1)/n)
+
+g_tails <- seq(mu_mle-3*sigma_mle, mu_mle+3*sigma_mle, sigma_mle*0.001)
+
+colours <- c("MLE density" = "red", "Kernel density" = "blue")
+
+estimated_density = data.frame(Tail = g_tails, Density = dnorm(g_tails, mean = mu_mle, sd = sigma_mle))
+
+plot_obj <- ggplot() + geom_line(data = estimated_density, aes(x = Tail, y = Density, color = "MLE density"))
+
+plot_obj + geom_density(data = tibble(tails), aes(x = tails, color = "Kernel density")) + labs(y = "Density function", color = "Estimator") + theme_bw() + scale_color_manual(values= colours)
+```
+```{r}
+
+
+
+mu <- 1
+sigma <- 3
+set.seed(0)
+num_trials <- 1000
+
+df <- tibble(trials = rep(1:num_trials, each = length(seq(5, 100, 5))),
+             n_1 = rep(seq(5, 100, 5), times = num_trials)) %>%
+  mutate(sample = map2(trials, n_1, ~rnorm(n = .y, mean = mu, sd = sigma)))
+
+# Print the first few rows of the resulting dataframe
+
+
+
+```
+```{r}
+df$Vector_Size <- lengths(df$sample)
+df %>% head()
+```
+```{r}
+#library(tidyverse)
+
+# Function to calculate bias
+calculate_bias <- function(estimator, true_value) {
+  mean(estimator - true_value)
+}
+
+# Simulation parameters
+mu <- 1
+sigma <- 3
+set.seed(0)
+num_trials <- 1000
+
+# Initialize an empty data frame to store results
+results_df <- tibble(sample_size = seq(5, 100, 5),
+                     bias_VMLE = numeric(length(seq(5, 100, 5))),
+                     bias_VU = numeric(length(seq(5, 100, 5))))
+
+# Simulation loop
+for (n in seq(5, 100, 5)) {
+  biases_VMLE <- numeric(num_trials)
+  biases_VU <- numeric(num_trials)
+  
+  for (i in 1:num_trials) {
+    # Generate samples
+    samples <- rnorm(n, mean = mu, sd = sigma)
+    
+    # Compute sample mean
+    X <- mean(samples)
+    
+    # Compute biases for both estimators
+    VMLE <- sum((samples - X)^2) / n
+    VU <- sum((samples - X)^2) / (n - 1)
+    
+    # Store biases
+    biases_VMLE[i] <- calculate_bias(VMLE, sigma^2)
+    biases_VU[i] <- calculate_bias(VU, sigma^2)
+  }
+  
+  # Store mean biases in the results data frame
+  results_df$bias_VMLE[results_df$sample_size == n] <- mean(biases_VMLE)
+  results_df$bias_VU[results_df$sample_size == n] <- mean(biases_VU)
+}
+
+# Plotting
+results_df_long <- results_df %>%
+  pivot_longer(cols = c(bias_VMLE, bias_VU), names_to = "Estimator", values_to = "Bias")
+
+ggplot(results_df_long, aes(x = sample_size, y = Bias, color = Estimator)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Bias of Estimators vs Sample Size",
+       x = "Sample Size",
+       y = "Bias") +
+  theme_minimal()
+
+```
+
+```{r}
+
+mu_mle = mean()
