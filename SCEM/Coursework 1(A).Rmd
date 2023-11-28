@@ -8,13 +8,16 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
 ```{r}
-data1 <- read.csv("C:\\Users\\vikra\\OneDrive\\Documents\\Rproject\\SCEM\\GFD_indicators.csv")
-data2 <- read.csv("C:\\Users\\vikra\\OneDrive\\Documents\\Rproject\\SCEM\\global_financial_development.csv")
+rm(list = ls())
 ```
 ```{r}
 library(tidyverse)
+data1 <- read.csv("C:\\Users\\vikra\\OneDrive\\Documents\\Rproject\\SCEM\\GFD_indicators.csv")
+data2 <- read.csv("C:\\Users\\vikra\\OneDrive\\Documents\\Rproject\\SCEM\\global_financial_development.csv")
 ```
+
 ```{r}
 
 df_code <- data.frame(data1)
@@ -44,31 +47,37 @@ df_merged <- df_merged %>%
 ```
 ```{r}
 df_stock <- df_merged %>%
-  filter(indicator_name == "StockMarketReturn")
+  filter(indicator_name == "StockMarketReturn") %>%
+  arrange(desc(year_2019)) 
 
-df_stock %>% head()
-```
-```{r}
 df_stock %>% select(country, year_2019, year_2020, year_2021) %>%
-  head()
+  head(5)
 ```
+
 
 ```{r}
 ave_max5values <- function(country, indicator){ 
-  df_country <- df_merged %>% filter(country == {{country}}, indicator_name == {{indicator}} )
+  df_country <- df_merged %>% filter(country == {{country}}, indicator_name == {{indicator}} ) %>%
+    pivot_longer(c(year_1960,year_1961,year_1962,year_1963,year_1964,year_1965,year_1966,year_1967,
+                   year_1968,year_1969,year_1970,year_1971,year_1972,year_1973, year_1974, year_1975, 
+                   year_1976,year_1977,year_1978,year_1979,year_1980,year_1981,year_1982,year_1983,
+                   year_1984,year_1985,year_1986,year_1987,year_1988,year_1989,year_1990,year_1991,
+                   year_1992,year_1993,year_1994,year_1995,year_1996,year_1997,year_1998,year_1999,
+                   year_2000,year_2001,year_2002,year_2003,year_2004,year_2005,year_2006,year_2007,
+                   year_2008,year_2009,year_2010,year_2011,year_2012,year_2013,year_2014, year_2015,
+                   year_2016, year_2017, year_2018, year_2019, year_2020, year_2021), 
+                 names_to = "year", values_to="value") %>%
+    mutate(year = str_replace(year, "year_", "")) %>%
+    mutate(year = strtoi(year)) %>%
+    select(country, indicator_name, year, value) %>%
+    top_n(5, value)
   
-  #country_sum <- df_country %>% 
-   # summarise(across(starts_with("year"), ~mean(head(sort(., decreasing = TRUE), 5), na.rm = TRUE)))
+  ave_sum <- mean(df_country$value)
   
-  #ave_sum <- mean(unlist(country_sum))
-  
-  return(df_country)
+  return(ave_sum)
 }
 
-ave_max5values("Aruba","BankBranchesPer100000Adults" )
-```
-```{r}
-names(df_merged)
+ave_max5values("Argentina","BankAccountsPer1000Adults" )
 ```
 
 ```{r}
@@ -89,24 +98,23 @@ print(bank_branch_hist)
 ```{r}
 
 df_plot2 <- df_merged %>%
-  pivot_longer(c(year_1975, year_1976, year_1977, year_1978,year_1979,year_1980,year_1981,year_1982,year_1983,year_1984,year_1985,year_1986,year_1987,year_1988,year_1989,year_1990,year_1991,year_1992,year_1993,year_1994,year_1995,year_1996,year_1997,year_1998,year_1999,year_2000,year_2001,year_2002,year_2003,year_2004,year_2005,year_2006,year_2007,year_2008,year_2009,year_2010,year_2011,year_2012,year_2013,year_2014), names_to = "year", values_to="value")
-```
-```{r}
-df_plot2 <- df_plot2 %>%
+  pivot_longer(c(year_1975, year_1976, year_1977,
+                 year_1978,year_1979,year_1980,year_1981,year_1982,year_1983,year_1984,year_1985,
+                 year_1986,year_1987,year_1988,year_1989,year_1990,year_1991,year_1992,year_1993,
+                 year_1994,year_1995,year_1996,year_1997,year_1998,year_1999,year_2000,year_2001,
+                 year_2002,year_2003,year_2004,year_2005,year_2006,year_2007,year_2008,year_2009,
+                 year_2010,year_2011,year_2012,year_2013,year_2014), 
+               names_to = "year",values_to="value") %>%
+  mutate(year = str_replace(year, "year_", "")) %>%
+  mutate(year = strtoi(year)) %>%
   select(country, year, value, indicator_name) %>%
   filter (indicator_name == 'CompaniesPer1000000People') %>%
   filter (country %in% c("Australia", "Belgium", "Switzerland", "United Kingdom"))
 
-
 df_plot2 %>% head()
 ```
 
-```{r}
-df_plot2 <- df_plot2 %>% 
-  mutate(year = str_replace(year, "year_", "")) %>%
-  mutate(year = strtoi(year))
 
-```
 ```{r}
 company_line <- ggplot(data = df_plot2, aes(x = year, y = value, color = country)) + ylab("Companies per 1000000 People") + xlab("Year") + geom_line()
 print(company_line)
