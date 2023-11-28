@@ -1,0 +1,113 @@
+---
+title: "Coursework Part 1 (A)"
+author: "Vikram Rajendran"
+date: "2023-11-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+data1 <- read.csv("C:\\Users\\vikra\\OneDrive\\Documents\\Rproject\\SCEM\\GFD_indicators.csv")
+data2 <- read.csv("C:\\Users\\vikra\\OneDrive\\Documents\\Rproject\\SCEM\\global_financial_development.csv")
+```
+```{r}
+library(tidyverse)
+```
+```{r}
+
+df_code <- data.frame(data1)
+df <- data.frame(data2)
+```
+```{r}
+df_code %>% head()
+```
+```{r}
+
+df %>% 
+  select(country, indicator_code, year_2019) %>%
+  head()
+```
+```{r}
+
+df_merged <- full_join(df, df_code, by = "indicator_code")
+```
+```{r}
+df_merged %>% 
+  select(country, indicator_name, year_2019) %>%
+  head(6)
+```
+```{r}
+df_merged <- df_merged %>%
+  select(-indicator_code)
+```
+```{r}
+df_stock <- df_merged %>%
+  filter(indicator_name == "StockMarketReturn")
+
+df_stock %>% head()
+```
+```{r}
+df_stock %>% select(country, year_2019, year_2020, year_2021) %>%
+  head()
+```
+
+```{r}
+ave_max5values <- function(country, indicator){ 
+  df_country <- df_merged %>% filter(country == {{country}}, indicator_name == {{indicator}} )
+  
+  #country_sum <- df_country %>% 
+   # summarise(across(starts_with("year"), ~mean(head(sort(., decreasing = TRUE), 5), na.rm = TRUE)))
+  
+  #ave_sum <- mean(unlist(country_sum))
+  
+  return(df_country)
+}
+
+ave_max5values("Aruba","BankBranchesPer100000Adults" )
+```
+```{r}
+names(df_merged)
+```
+
+```{r}
+df_plot <- df_merged %>% 
+  select(country, indicator_name, year_2019, income) %>%
+  filter(indicator_name == 'BankBranchesPer100000Adults') %>%
+  filter(year_2019 <= 500, na.rm = TRUE)
+```
+```{r}
+df_plot %>% head()
+```
+```{r}
+
+bank_branch_hist <- ggplot(data = df_plot, aes(x =year_2019, color = income)) + geom_histogram(binwidth = 10) + ylab("count") + xlab("Bank Branches per 100000 Adults")
+print(bank_branch_hist)
+
+```
+```{r}
+
+df_plot2 <- df_merged %>%
+  pivot_longer(c(year_1975, year_1976, year_1977, year_1978,year_1979,year_1980,year_1981,year_1982,year_1983,year_1984,year_1985,year_1986,year_1987,year_1988,year_1989,year_1990,year_1991,year_1992,year_1993,year_1994,year_1995,year_1996,year_1997,year_1998,year_1999,year_2000,year_2001,year_2002,year_2003,year_2004,year_2005,year_2006,year_2007,year_2008,year_2009,year_2010,year_2011,year_2012,year_2013,year_2014), names_to = "year", values_to="value")
+```
+```{r}
+df_plot2 <- df_plot2 %>%
+  select(country, year, value, indicator_name) %>%
+  filter (indicator_name == 'CompaniesPer1000000People') %>%
+  filter (country %in% c("Australia", "Belgium", "Switzerland", "United Kingdom"))
+
+
+df_plot2 %>% head()
+```
+
+```{r}
+df_plot2 <- df_plot2 %>% 
+  mutate(year = str_replace(year, "year_", "")) %>%
+  mutate(year = strtoi(year))
+
+```
+```{r}
+company_line <- ggplot(data = df_plot2, aes(x = year, y = value, color = country)) + ylab("Companies per 1000000 People") + xlab("Year") + geom_line()
+print(company_line)
+```
