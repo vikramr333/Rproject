@@ -56,28 +56,56 @@ df_stock %>% select(country, year_2019, year_2020, year_2021) %>%
 
 
 ```{r}
-ave_max5values <- function(country, indicator){ 
-  df_country <- df_merged %>% filter(country == {{country}}, indicator_name == {{indicator}} ) %>%
-    pivot_longer(c(year_1960,year_1961,year_1962,year_1963,year_1964,year_1965,year_1966,year_1967,
-                   year_1968,year_1969,year_1970,year_1971,year_1972,year_1973, year_1974, year_1975, 
-                   year_1976,year_1977,year_1978,year_1979,year_1980,year_1981,year_1982,year_1983,
-                   year_1984,year_1985,year_1986,year_1987,year_1988,year_1989,year_1990,year_1991,
-                   year_1992,year_1993,year_1994,year_1995,year_1996,year_1997,year_1998,year_1999,
-                   year_2000,year_2001,year_2002,year_2003,year_2004,year_2005,year_2006,year_2007,
-                   year_2008,year_2009,year_2010,year_2011,year_2012,year_2013,year_2014, year_2015,
-                   year_2016, year_2017, year_2018, year_2019, year_2020, year_2021), 
-                 names_to = "year", values_to="value") %>%
-    mutate(year = str_replace(year, "year_", "")) %>%
-    mutate(year = strtoi(year)) %>%
-    select(country, indicator_name, year, value) %>%
-    top_n(5, value)
+ave_max5values <- function(x){ 
+  df_func <- df_summary %>%
+    top_n(5)
+  #ave_sum <- mean(x)
   
-  ave_sum <- mean(df_country$value)
-  
-  return(ave_sum)
+  return(df_func)
 }
+ave_max5values(BankBranchesPer100000)
 
-ave_max5values("Argentina","BankAccountsPer1000Adults" )
+```
+```{r}
+
+names(df_merged)
+```
+
+```{r}
+#df_names <- df_merged %>%
+ # filter(indicator_name == "BankBranchesPer100000Adults")
+
+#df_ind <- df_merged %>%
+ # filter(country == 'Aruba') %>%
+#  filter(indicator_name != "ATMsPer100000Adults")
+
+
+#Country_names <- c(df_names$country)
+#indicator_names <- c(df_ind$indicator_name)
+
+df_summary <- df_merged %>%
+  pivot_longer( cols = starts_with("year_"), 
+                names_prefix = "year_",
+                names_to = "year",values_to="value") %>%
+  mutate(year = strtoi(year)) %>%
+  pivot_wider(names_from = indicator_name, values_from = value) %>%
+  select(-ATMsPer100000Adults) %>%
+  group_by(country) %>%
+  
+
+
+  
+
+
+```
+```{r}
+top5Bank <- df_summary %>%
+  top_n(5, BankBranchesPer100000Adults) %>% 
+  summarise(BankBranchMean = mean(BankBranchesPer100000Adults))
+
+#top5BankAct <- df_Summary %>%
+ # top_n(5, BankPer100000Adults) %>% 
+#  summarise(BankBranchMean = mean(5, BankBranchesPer100000Adults))
 ```
 
 ```{r}
@@ -95,25 +123,24 @@ bank_branch_hist <- ggplot(data = df_plot, aes(x =year_2019, color = income)) + 
 print(bank_branch_hist)
 
 ```
-```{r}
 
+```{r}
 df_plot2 <- df_merged %>%
-  pivot_longer(c(year_1975, year_1976, year_1977,
-                 year_1978,year_1979,year_1980,year_1981,year_1982,year_1983,year_1984,year_1985,
-                 year_1986,year_1987,year_1988,year_1989,year_1990,year_1991,year_1992,year_1993,
-                 year_1994,year_1995,year_1996,year_1997,year_1998,year_1999,year_2000,year_2001,
-                 year_2002,year_2003,year_2004,year_2005,year_2006,year_2007,year_2008,year_2009,
-                 year_2010,year_2011,year_2012,year_2013,year_2014), 
-               names_to = "year",values_to="value") %>%
-  mutate(year = str_replace(year, "year_", "")) %>%
+  pivot_longer( cols = starts_with("year_"), 
+                names_prefix = "year_",
+                names_to = "year",values_to="value") %>%
   mutate(year = strtoi(year)) %>%
   select(country, year, value, indicator_name) %>%
   filter (indicator_name == 'CompaniesPer1000000People') %>%
-  filter (country %in% c("Australia", "Belgium", "Switzerland", "United Kingdom"))
+  filter (country %in% c("Australia", "Belgium", "Switzerland", "United Kingdom")) %>%
+  filter (year > 1974)
+
+```
+
+```{r}
 
 df_plot2 %>% head()
 ```
-
 
 ```{r}
 company_line <- ggplot(data = df_plot2, aes(x = year, y = value, color = country)) + ylab("Companies per 1000000 People") + xlab("Year") + geom_line()
