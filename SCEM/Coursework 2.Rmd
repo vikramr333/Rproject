@@ -1,0 +1,48 @@
+---
+title: "Coursework 2"
+author: "Vikram Rajendran"
+date: "2023-11-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(tidyverse)
+
+data <- read.csv("C:\\Users\\vikra\\MLBExpectedStats.csv")
+
+df_mlb <- data.frame(data)
+
+```
+
+
+
+```{r}
+
+df_mlb %>% ggplot(aes(x = Year2minusYear1)) + geom_density( ) + theme_bw() + labs (x = "Difference between Year 1 and Year 2 Difference from Expected Performance", y = "density")
+
+```
+```{r}
+df_mlb %>% ggplot(aes(sample = Year2minusYear1)) + stat_qq()+stat_qq_line(color = "blue") + theme_bw()
+
+```
+```{r}
+
+t.test(x = df_mlb$Year1Difference, y= df_mlb$Year2Difference, paired = TRUE)
+
+```
+```{r}
+
+ybar <- mean(df_mlb$Year2minusYear1)
+
+s <- sd(df_mlb$Year2minusYear1)
+
+effect_size <- ybar/s
+
+print(effect_size)
+
+```
