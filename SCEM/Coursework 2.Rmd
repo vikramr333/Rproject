@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 
-data <- read.csv("C:\\Users\\vikra\\MLBExpectedStats.csv")
+data <- read.csv("C:\\Users\\vikra\\MLBExpectedStats2.csv")
 
 df_mlb <- data.frame(data)
 
@@ -32,7 +32,7 @@ df_mlb %>% ggplot(aes(sample = Year2minusYear1)) + stat_qq()+stat_qq_line(color 
 ```
 ```{r}
 
-t.test(x = df_mlb$Year1Difference, y= df_mlb$Year2Difference, paired = TRUE)
+t.test(x = df_mlb$Year1woba.est_woba, y= df_mlb$Year2woba.est_woba, paired = TRUE)
 
 ```
 ```{r}
