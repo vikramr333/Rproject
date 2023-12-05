@@ -1,0 +1,160 @@
+---
+title: "Coursework 1(B)"
+author: "Vikram Rajendran"
+date: "2023-12-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list = ls())
+library(tidyverse)
+```
+
+
+
+
+```{r}
+gen_x <- function(alpha,beta, n){
+  
+  #set.seed(0)
+  U <- runif(n)
+  
+  X <- alpha/((1-U)^(1/beta))
+  
+  
+  return(X)
+}
+
+
+
+test_sample2 <- gen_x(5,3, 5000)
+print(test_sample2)
+```
+
+
+```{r}
+
+df_test <- data.frame(x = c(test_sample2))
+test_plot <- ggplot(data = df_test, aes(x = x)) + geom_density() + theme_bw() +xlab("x")
+print(test_plot)
+
+```
+
+```{r}
+
+gen_xbar <- function(alpha, beta, n, num_samples) {
+
+
+results_df <- data.frame(mean_value = numeric(0))
+
+for (i in 1:num_samples) {
+
+  sample <- gen_x(alpha, beta, n)
+
+  sample_mean <- mean(sample)
+  
+
+  results_df <- rbind(results_df, data.frame(sample_mean))
+}
+
+print(results_df)
+
+}
+
+alpha <- 5
+beta <- 3
+n <- 5000
+num_samples <- 1000
+result_dataframe <- gen_xbar(alpha, beta, n, num_samples)
+
+head(result_dataframe)
+
+```
+
+
+
+
+```{r}
+
+mu = (beta * alpha) / (beta - 1)
+s2 = (beta * (alpha^2)) / (n*(beta - 2) * ((beta - 1)^2))
+
+df_cdf <- data.frame(x = result_dataframe$sample_mean) %>%
+  mutate(cdf = pnorm(mean = mu, sd = sqrt(s2), q = x)) 
+  
+df_sq <- data.frame(x = seq(0,1, 0.005)) %>%
+  mutate(sq = qnorm(mean = mu, sd = sqrt(s2), p = x))
+
+```
+
+```{r}
+
+library(patchwork)
+line_plot <- ggplot(df_cdf, aes(x = x, y = cdf)) +
+  geom_line() + theme_bw()
+
+sq_plot <- ggplot(data= df_sq, aes(x = x, y = sq)) + geom_point() + theme_bw()
+
+cdf_sq_plot <- sq_plot + line_plot
+
+print(cdf_sq_plot)
+
+```
+
+```{r}
+
+beta_mle <- n / (sum(log(df_test$x)) - n * log(alpha))
+
+```
+
+```{r}
+
+gen_beta_mle <- function(alpha, beta, n, num_samples) {
+
+
+
+for (i in 1:num_samples) {
+
+  sample <- gen_x(alpha, beta, n)
+
+  beta_mle <- n / (sum(log(c(sample))) - n * log(alpha))
+  
+  return(beta_mle)
+
+}
+
+}
+
+
+```
+
+```{r}
+
+df_beta_mle <- crossing(sample_size = sample_sizes, trials = seq(5000)) %>%
+  rowwise() %>% 
+  mutate(beta_mle = list(gen_beta_mle(5, 3, sample_size, 5000))) %>%
+  ungroup()
+  
+```
+
+```{r}
+
+df_bias <- df_beta_mle %>%
+  unnest(beta_mle) %>%
+  group_by(sample_size) %>%
+  summarise(beta_mle_bias = mean(beta_mle - beta))
+            
+```
+
+```{r}
+
+line_plot2 <- ggplot(df_bias, aes(x = sample_size, y = beta_mle_bias)) +
+  geom_line() + theme_bw()
+
+print(line_plot2)
+
+```
